@@ -18,3 +18,7 @@ $ pip install -r requirements.txt
 - copy .env.example to create .env file
 - Set environment variables in .env file using .env.example as a template
 
+## Run FastAPI Server
+```bash
+$ uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
