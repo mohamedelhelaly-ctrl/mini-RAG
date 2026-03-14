@@ -24,7 +24,7 @@ async def upload_data(project_id: str, file: UploadFile,
     if not is_valid:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"error": message})
     
-    file_path = data_controller.generate_unique_filename(original_filename=file.filename, project_id=project_id)
+    file_path, file_id = data_controller.generate_unique_filepath(original_filename=file.filename, project_id=project_id)
 
     # asynchronously stream an uploaded file to disk in fixed-size chunks, don't load the whole file into memory.
     try: 
@@ -38,6 +38,7 @@ async def upload_data(project_id: str, file: UploadFile,
     return JSONResponse(status_code=status.HTTP_200_OK, 
                         content={
                             "message": message, 
-                            "file_path": file_path
+                            "file_path": file_path,
+                            "file_id": file_id
                             }
                         )
