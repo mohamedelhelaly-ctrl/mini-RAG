@@ -3,4 +3,8 @@ uvicorn[standard]==0.41.0
 python-multipart==0.0.22
 python-dotenv==1.2.2
 pydantic-settings==2.13.1
+pydantic==2.12.5
 aiofiles==25.1.0
+PyMuPDF==1.27.2
+langchain==1.2.12
+langchain-community==0.4.1
