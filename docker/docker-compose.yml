@@ -1,0 +1,14 @@
+services:
+  mongodb:
+    image: mongo:7-jammy            # Docker image name and tag to run 
+    container_name: mongodb         # Explicit container name
+    ports:
+      - "27007:27017"               # HostPort:ContainerPort — expose Mongo on host port 27007
+    volumes:
+      - ./mongodb:/data/db          # HostDir:ContainerDir — persist DB files on host
+    networks:
+      - backend
+    restart: always                  # Always restart container on failure/reboot
+
+networks:
+  backend:                           # User-defined network for service-to-service communication
