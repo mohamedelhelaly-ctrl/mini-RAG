@@ -3,7 +3,7 @@ from typing import Optional
 from bson.objectid import ObjectId
 
 class Project(BaseModel):
-    _id: Optional[ObjectId]
+    id: Optional[ObjectId] = Field(default=None, alias="_id") # allows us to use 'id' instead of '_id' when creating a DataChunk object, but it will be stored in MongoDB as '_id'
     project_id: str = Field(...,min_length=1)
 
     @validator('project_id')
