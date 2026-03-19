@@ -5,12 +5,14 @@ from helpers.config import get_settings, Settings
 from controllers import DataController, ProjectController, ProcessController
 import os
 import aiofiles
-from models import ResponseEnum
+from models import ResponseEnum, AssetTypeEnum
 import logging
 from .schemas.data import ProcessRequest
 from models.ProjectModel import ProjectModel
 from models.mongodb_schemas import DataChunk
 from models.ChunkModel import ChunkModel
+from models.AssetModel import AssetModel
+from models.mongodb_schemas.asset import Asset
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -48,10 +50,24 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
         logger.error(f"Error uploading file: {e}")
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"error": ResponseEnum.FILE_UPLOAD_FAILED.value})
     
+    asset_model = await AssetModel.create_instance(
+        db_client=request.app.mongodb_client
+    )
+
+    asset_resource = Asset(
+        asset_project_id=project.id,
+        asset_type=AssetTypeEnum.ASSET_TYPE_FILE.value,
+        asset_name=file_id, 
+        asset_size=os.path.getsize(file_path)
+    )
+
+    asset_record = await asset_model.create_asset(asset=asset_resource)
+
     return JSONResponse(status_code=status.HTTP_200_OK, 
                         content={
                             "message": message, 
-                            "file_id": file_id
+                            "file_id": str(asset_record.id),
+                            "file_name": asset_record.asset_name
                             }
                         )
 
