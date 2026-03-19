@@ -16,7 +16,18 @@ $ pip install -r requirements.txt
 
 ## Setup Environment Variables
 - copy .env.example to create .env file
+```bash
+$ cp .env.example .env
+```
 - Set environment variables in .env file using .env.example as a template
+
+
+# Run Docker Compose Services
+```bash
+$ cd docker
+$ cp .env.example .env
+```
+- update .env with your credentials
 
 ## Run FastAPI Server
 ```bash
