@@ -12,3 +12,15 @@ class DataChunk(BaseModel):
     # Tells Pydantic to accept fields typed with Python classes it doesn't know how to validate (ObjectID)
     class Config:
         arbitrary_types_allowed = True
+    
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                "key": [
+                    ("chunk_project_id", 1)
+                ],
+                "name": "_chunkproject_id_index",
+                "unique": False
+            }
+        ]

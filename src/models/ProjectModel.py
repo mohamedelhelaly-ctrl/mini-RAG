@@ -8,6 +8,24 @@ class ProjectModel(BaseDataModel):
         super().__init__(db_client)
         self.collection = self.db_client[DatabaseEnum.COLLECTION_PROJECT_NAME.value]
     
+    @classmethod
+    async def create_instance(cls, db_client):
+        instance = cls(db_client) # creates an instance of the ProjectModel class, passing the db_client to the constructor
+        await instance.init_collection()
+        return instance
+    
+    async def init_collection(self):
+        all_collections = await self.db_client.list_collection_names()
+        if DatabaseEnum.COLLECTION_PROJECT_NAME.value not in all_collections:
+            self.db_client[DatabaseEnum.COLLECTION_PROJECT_NAME.value]
+            indexes = Project.get_indexes()
+            for index in indexes:
+                await self.collection.create_index(
+                    index["key"],
+                    name=index["name"],
+                    unique=index.get("unique", False)
+                )
+    
     async def create_project(self, project: Project):
         result = await self.collection.insert_one(project.dict(by_alias=True, exclude_unset=True))  # insert_one takes a dict, we need to convert the Project object to a dict  
         project._id = result.inserted_id

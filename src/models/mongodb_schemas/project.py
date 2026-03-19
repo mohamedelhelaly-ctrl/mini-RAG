@@ -17,3 +17,15 @@ class Project(BaseModel):
     # Tells Pydantic to accept fields typed with Python classes it doesn't know how to validate (ObjectID)
     class Config:
         arbitrary_types_allowed = True
+    
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                "key": [
+                    ("project_id", 1)
+                ],
+                "name": "project_id_index",
+                "unique": True
+            }
+        ]
