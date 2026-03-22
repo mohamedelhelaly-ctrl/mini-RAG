@@ -9,3 +9,5 @@ class ResponseEnum(Enum):
     FILE_VALIDATION_SUCCESS = "File validated successfully."
     FILE_PROCESSING_FAILED = "File processing failed."
     FILE_PROCESSING_SUCCESS = "File processed successfully."
+    NO_FILES_TO_PROCESS = "No files available to process for this project."
+    FILE_NOT_FOUND = "File not found for the given project and file ID."
