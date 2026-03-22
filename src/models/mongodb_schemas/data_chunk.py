@@ -8,6 +8,7 @@ class DataChunk(BaseModel):
     chunk_metadata: dict
     chunk_order: int = Field(..., gt=0)
     chunk_project_id: ObjectId
+    chunk_asset_id: ObjectId
     
     # Tells Pydantic to accept fields typed with Python classes it doesn't know how to validate (ObjectID)
     class Config:
