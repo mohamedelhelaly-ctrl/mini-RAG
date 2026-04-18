@@ -66,10 +66,10 @@ class QdrantDBProvider(vectorDBInterface):
             return False
         
         try:
-            _ = self.client.upload_records(
+            _ = self.client.upsert(
                 collection_name=collection_name,
                 points = [
-                    models.Point(
+                    models.PointStruct(
                         id = record_id,
                         vector=vector,
                         payload={
@@ -106,7 +106,7 @@ class QdrantDBProvider(vectorDBInterface):
             batch_record_ids = record_ids[i:batch_end]
 
             batch_records = [
-                models.Point(
+                models.PointStruct(
                     id = batch_record_ids[x],
                     vector=batch_vectors[x],
                     payload={
@@ -131,9 +131,9 @@ class QdrantDBProvider(vectorDBInterface):
                          vector: list,
                          limit: int = 5):
         
-        return self.client.search(
+        return self.client.query_points(
             collection_name=collection_name,
-            query_vector=vector,
+            query=vector,
             limit=limit
         )
     
