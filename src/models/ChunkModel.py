@@ -3,6 +3,7 @@ from .mongodb_schemas import DataChunk
 from .enums.DatabaseEnums import DatabaseEnum
 from bson.objectid import ObjectId
 from pymongo import InsertOne
+from typing import List
 
 class ChunkModel(BaseDataModel):
     
@@ -65,3 +66,23 @@ class ChunkModel(BaseDataModel):
             "chunk_project_id": project_id
         })
         return result.deleted_count
+    
+    async def get_chunks_by_project(self, project_id: ObjectId, page_no: int=1,
+                                    page_size: int=50) -> List[DataChunk]:
+        records = await self.collection.find({
+            "chunk_project_id": project_id
+        }).skip((page_no-1) * page_size).limit(page_size).to_list(length=None) 
+
+        return [DataChunk(**record) for record in records]
+    
+    async def fetch_all_chunks(chunk_model, project_id):
+        all_chunks = []
+        page_no = 1
+        page_size = 50  # Or adjust as needed
+        while True:
+            chunks = await chunk_model.get_chunks_by_project(project_id, page_no=page_no, page_size=page_size)
+            if not chunks or len(chunks)==0:  # No more results
+                break
+            all_chunks.extend(chunks)
+            page_no += 1
+        return all_chunks
