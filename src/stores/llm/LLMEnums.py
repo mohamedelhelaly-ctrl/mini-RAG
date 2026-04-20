@@ -18,6 +18,11 @@ class CohereEnums(Enum):
     DOCUMENT = "search_document"
     QUERY = "search_query"
 
+class AnthropicEnums(Enum):
+    ROLE_SYSTEM = "system"
+    ROLE_USER = "user"
+    ROLE_ASSISTANT = "assistant"
+
 
 class EmbeddingDocumentTypeEnums(Enum):
     DOCUMENT = "document"

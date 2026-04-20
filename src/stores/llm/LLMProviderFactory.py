@@ -1,5 +1,5 @@
 from .LLMEnums import LLMEnums
-from .providers import OpenAIProvider, CohereProvider
+from .providers import OpenAIProvider, CohereProvider, AnthropicProvider
 
 class LLMProviderFactory:
     
@@ -18,6 +18,13 @@ class LLMProviderFactory:
         elif provider == LLMEnums.COHERE.value:
             return CohereProvider(
                 api_key=self.config.COHERE_API_KEY,
+                default_max_input_characters=self.config.INPUT_DEFAULT_MAX_CHARACTERS,
+                default_max_output_tokens=self.config.GENERATION_DEFAULT_MAX_TOKENS,
+                default_temperature=self.config.GENERATION_DEFAULT_TEMPERATURE
+            )
+        elif provider == LLMEnums.ANTHROPIC.value:
+            return AnthropicProvider(
+                api_key=self.config.ANTHROPIC_API_KEY,
                 default_max_input_characters=self.config.INPUT_DEFAULT_MAX_CHARACTERS,
                 default_max_output_tokens=self.config.GENERATION_DEFAULT_MAX_TOKENS,
                 default_temperature=self.config.GENERATION_DEFAULT_TEMPERATURE
