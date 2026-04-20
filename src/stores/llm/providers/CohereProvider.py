@@ -18,6 +18,7 @@ class CohereProvider(LLMInterface):
         self.generation_model_id = None
         self.embedding_model_id = None
         self.embedding_size = None
+        self.enums = CohereEnums
 
         self.client = cohere.ClientV2(api_key=self.api_key)
         self.logger = logging.getLogger(__name__)
@@ -32,28 +33,54 @@ class CohereProvider(LLMInterface):
     def process_text(self, text: str):
         return text.strip()[:self.default_max_input_characters].strip()
     
-    def generate_text(self, prompt, chat_history:list = [], max_output_tokens = None, temperature = None):
+    # def generate_text(self, prompt, chat_history:list = [], max_output_tokens = None, temperature = None):
+    #     if not self.client:
+    #         self.logger.error("Cohere client is not initialized. Cannot generate text.")
+    #         return None
+        
+    #     if not self.generation_model_id:
+    #         self.logger.error("Generation model ID is not set. Cannot generate text.")
+    #         return None
+        
+    #     max_output_tokens = max_output_tokens if max_output_tokens else self.default_max_output_tokens
+    #     temperature = temperature if temperature else self.default_temperature
+
+    #     response = self.client.chat(
+    #         model = self.generation_model_id,
+    #         messages = chat_history + [self.construct_prompt(prompt, CohereEnums.ROLE_USER.value)],
+    #         max_tokens = max_output_tokens,
+    #         temperature = temperature   
+    #     )
+    #     if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message:
+    #         self.logger.error("No valid response returned from Cohere API.")
+    #         return None
+        
+    #     return response.message.content[0].text
+
+    def generate_text(self, prompt, chat_history: list = [], max_output_tokens=None, temperature=None):
         if not self.client:
-            self.logger.error("Cohere client is not initialized. Cannot generate text.")
+            self.logger.error("Cohere client is not initialized.")
             return None
-        
+
         if not self.generation_model_id:
-            self.logger.error("Generation model ID is not set. Cannot generate text.")
+            self.logger.error("Generation model ID is not set.")
             return None
-        
+
         max_output_tokens = max_output_tokens if max_output_tokens else self.default_max_output_tokens
         temperature = temperature if temperature else self.default_temperature
 
         response = self.client.chat(
-            model = self.generation_model_id,
-            messages = chat_history + [self.construct_prompt(prompt, CohereEnums.ROLE_USER.value)],
-            max_tokens = max_output_tokens,
-            temperature = temperature   
+            model=self.generation_model_id,
+            messages=chat_history + [self.construct_prompt(prompt, CohereEnums.ROLE_USER.value)],
+            max_tokens=max_output_tokens,
+            temperature=temperature
         )
-        if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message:
+
+        # ✅ Correct validation and accessor for ClientV2
+        if not response or not response.message or not response.message.content:
             self.logger.error("No valid response returned from Cohere API.")
             return None
-        
+
         return response.message.content[0].text
     
     def embed_text(self, text: str, document_type: str = None):

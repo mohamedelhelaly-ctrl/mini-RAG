@@ -17,3 +17,5 @@ class ResponseEnum(Enum):
     VECTORDB_COLLECTION_INFO_RETRIEVED = "Vector database collection information retrieved successfully."
     VECTORDB_SEARCH_SUCCESS = "Vector database search completed successfully."
     VECTORDB_SEARCH_ERROR = "An error occurred during vector database search."
+    RAG_ANSWER_ERROR = "An error occurred while generating the answer for the query."
+    RAG_ANSWER_SUCCESS = "Answer generated successfully for the query."

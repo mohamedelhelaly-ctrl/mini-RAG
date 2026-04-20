@@ -2,6 +2,7 @@ from ..vectorDBInterface import vectorDBInterface
 from ..vectorDBEnums import vectorDBEnums, DistanceMethodEnums
 from qdrant_client import QdrantClient, models
 from typing import List
+from models.mongodb_schemas.data_chunk import RetrievedDocument
 import logging
 
 class QdrantDBProvider(vectorDBInterface):
@@ -131,10 +132,30 @@ class QdrantDBProvider(vectorDBInterface):
                          vector: list,
                          limit: int = 5):
         
-        return self.client.query_points(
+        results = self.client.query_points(
             collection_name=collection_name,
             query=vector,
             limit=limit
         )
+
+        points = None
+        # if isinstance(results, dict):
+        #     points = results.get("points", [])
+        # else:
+        points = getattr(results, "points", [])
+
+        if not points:
+            self.logger.warning(
+                f"No results found for the given query vector in collection {collection_name}"
+            )
+            return None
+        
+        return [
+            RetrievedDocument(**{
+                "text": point.payload["text"],
+                "score": point.score
+            })
+            for point in points
+        ]
     
     

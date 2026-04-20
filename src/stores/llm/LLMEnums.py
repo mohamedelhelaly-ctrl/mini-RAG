@@ -11,9 +11,9 @@ class OpenAIEnums(Enum):
     ROLE_ASSISTANT = "assistant"
 
 class CohereEnums(Enum):
-    ROLE_SYSTEM = "SYSTEM"
-    ROLE_USER = "USER"
-    ROLE_ASSISTANT = "CHATBOT" 
+    ROLE_SYSTEM = "system"
+    ROLE_USER = "user"
+    ROLE_ASSISTANT = "chatbot" 
 
     DOCUMENT = "search_document"
     QUERY = "search_query"

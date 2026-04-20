@@ -12,13 +12,14 @@ class OpenAIProvider(LLMInterface):
                  default_temperature: float = 0.2):
         
         self.api_key = api_key
-        self.api_url = api_url
+        self.api_url = api_url 
         self.default_max_input_characters = default_max_input_characters
         self.default_max_output_tokens = default_max_output_tokens
         self.default_temperature = default_temperature
         self.generation_model_id = None
         self.embedding_model_id = None
         self.embedding_size = None
+        self.enums = OpenAIEnums
 
         self.client = OpenAI(api_key=self.api_key, 
                              base_url=self.api_url if self.api_url and len(self.api_url) else None)
