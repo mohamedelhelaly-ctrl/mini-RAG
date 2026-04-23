@@ -219,3 +219,5 @@ tuts/
 assets/files/
 assets/database/
 cmds.txt
+
+models/db_schemas/minirag/alembic.ini

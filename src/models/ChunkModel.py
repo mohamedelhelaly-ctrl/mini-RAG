@@ -1,5 +1,5 @@
 from .BaseDataModel import BaseDataModel
-from .mongodb_schemas import DataChunk
+from .db_schemas import DataChunk
 from .enums.DatabaseEnums import DatabaseEnum
 from bson.objectid import ObjectId
 from pymongo import InsertOne
@@ -32,11 +32,11 @@ class ChunkModel(BaseDataModel):
 
     async def create_chunk(self, chunk: DataChunk):
         result = await self.collection.insert_one(chunk.dict(by_alias=True, exclude_unset=True))  # insert_one takes a dict, we need to convert the DataChunk object to a dict  
-        chunk.id = result.inserted_id
+        chunk.chunk_id = result.inserted_id
         return chunk
     
     
-    async def get_chunk(self, chunk_id: str):
+    async def get_chunk(self, chunk_id: int):
         result = await self.collection.find_one({
             "_id": ObjectId(chunk_id)
         })

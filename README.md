@@ -29,8 +29,20 @@ $ cp .env.example .env
 ```
 - update .env with your credentials
 
+```bash
+$ sudo docker compuse up
+```
+
 ## Run FastAPI Server
 ```bash
 $ cd src
 $ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+## Run Alembic for Data Migration
+```bash
+$ alembic init alembic
+$ alembic revision --autogenerate -m "Initial Commit"
+$ alembic upgrade head 
+```
+ 

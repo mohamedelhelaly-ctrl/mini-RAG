@@ -1,5 +1,5 @@
 from .BaseDataModel import BaseDataModel
-from .mongodb_schemas import Asset
+from .db_schemas import Asset
 from .enums.DatabaseEnums import DatabaseEnum
 from bson import ObjectId
 
@@ -29,10 +29,10 @@ class AssetModel(BaseDataModel):
     
     async def create_asset(self, asset: Asset):
         result = await self.collection.insert_one(asset.dict(by_alias=True, exclude_unset=True))  # insert_one takes a dict, we need to convert the Asset object to a dict  
-        asset.id = result.inserted_id
+        asset.asset_id = result.inserted_id
         return asset
     
-    async def get_asset(self, asset_project_id: str, asset_name: str):
+    async def get_asset(self, asset_project_id: int, asset_name: str):
         result = await self.collection.find_one({
             "asset_project_id": ObjectId(asset_project_id) if isinstance(asset_project_id, str) else asset_project_id,
             "asset_name": asset_name
@@ -42,7 +42,7 @@ class AssetModel(BaseDataModel):
         
         return Asset(**result)
     
-    async def get_all_project_assets(self, asset_project_id: str, asset_type: str):
+    async def get_all_project_assets(self, asset_project_id: int, asset_type: str):
         results = await self.collection.find({
             "asset_project_id": ObjectId(asset_project_id) if isinstance(asset_project_id, str) else asset_project_id ,
             "asset_type": asset_type

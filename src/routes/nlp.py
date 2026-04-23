@@ -16,15 +16,15 @@ nlp_router = APIRouter(
 )
 
 @nlp_router.post("/index/push/{project_id}")
-async def index_project_data(project_id: str, request: Request, push_request: IndexPushRequest,
+async def index_project_data(project_id: int, request: Request, push_request: IndexPushRequest,
                             app_settings : Settings = Depends(get_settings)):
 
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
 
     chunk_model = await ChunkModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
      
     project = await project_model.get_or_create_project(
@@ -49,7 +49,7 @@ async def index_project_data(project_id: str, request: Request, push_request: In
 
     while has_records:
         page_chunks = await chunk_model.get_chunks_by_project(
-            project_id=project.id,
+            project_id=project.project_id,
             page_no=page_no
         )
 
@@ -86,9 +86,9 @@ async def index_project_data(project_id: str, request: Request, push_request: In
     
 
 @nlp_router.get("/index/info/{project_id}")
-async def get_index_info(project_id: str, request: Request):
+async def get_index_info(project_id: int, request: Request):
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
     project = await project_model.get_or_create_project(
         project_id=project_id
@@ -109,9 +109,9 @@ async def get_index_info(project_id: str, request: Request):
 
 
 @nlp_router.post("/index/search/{project_id}")
-async def search_index(project_id: str, request: Request, search_request: IndexSearchRequest):
+async def search_index(project_id: int, request: Request, search_request: IndexSearchRequest):
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
     project = await project_model.get_or_create_project(
         project_id=project_id
@@ -142,9 +142,9 @@ async def search_index(project_id: str, request: Request, search_request: IndexS
 
 
 @nlp_router.post("/index/answer/{project_id}")
-async def answer_query(project_id: str, request: Request, search_request: IndexSearchRequest):
+async def answer_query(project_id: int , request: Request, search_request: IndexSearchRequest):
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
     project = await project_model.get_or_create_project(
         project_id=project_id

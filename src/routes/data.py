@@ -9,10 +9,10 @@ from models import ResponseEnum, AssetTypeEnum
 import logging
 from .schemas.data import ProcessRequest
 from models.ProjectModel import ProjectModel
-from models.mongodb_schemas import DataChunk
+from models.db_schemas import DataChunk
 from models.ChunkModel import ChunkModel
 from models.AssetModel import AssetModel
-from models.mongodb_schemas.asset import Asset
+from models.db_schemas import Asset
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -22,11 +22,11 @@ data_router = APIRouter(
 )
 
 @data_router.post("/upload/{project_id}")
-async def upload_data(request: Request, project_id: str, file: UploadFile, 
+async def upload_data(request: Request, project_id: int, file: UploadFile, 
                       app_settings : Settings = Depends(get_settings)):
     
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
 
     project = await project_model.get_or_create_project(
@@ -51,11 +51,11 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"error": ResponseEnum.FILE_UPLOAD_FAILED.value})
     
     asset_model = await AssetModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
 
     asset_resource = Asset(
-        asset_project_id=project.id,
+        asset_project_id=project.project_id,
         asset_type=AssetTypeEnum.ASSET_TYPE_FILE.value,
         asset_name=file_id, 
         asset_size=os.path.getsize(file_path)
@@ -66,21 +66,21 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
     return JSONResponse(status_code=status.HTTP_200_OK, 
                         content={
                             "message": message, 
-                            "file_id": str(asset_record.id),
+                            "file_id": str(asset_record.asset_id),
                             "file_name": asset_record.asset_name
                             }
                         )
 
 
 @data_router.post("/process/{project_id}")
-async def process_data(request: Request, project_id: str, process_request: ProcessRequest):
+async def process_data(request: Request, project_id: int, process_request: ProcessRequest):
     # file_id = process_request.file_id
     chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
 
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
 
     project = await project_model.get_or_create_project(
@@ -88,18 +88,18 @@ async def process_data(request: Request, project_id: str, process_request: Proce
     )
 
     chunk_model = await ChunkModel.create_instance(
-        db_client=request.app.mongodb_client
+        db_client=request.app.db_client
     )
 
     asset_model = await AssetModel.create_instance(
-            db_client=request.app.mongodb_client
+            db_client=request.app.db_client
         )
 
     project_file_ids = {}
     
     if process_request.file_id:
         asset_record = await asset_model.get_asset(
-            asset_project_id=project.id,
+            asset_project_id=project.project_id,
             asset_name=process_request.file_id
         )
         if asset_record is None:
@@ -108,15 +108,15 @@ async def process_data(request: Request, project_id: str, process_request: Proce
                 content={"error": ResponseEnum.FILE_NOT_FOUND.value}
                 )
         
-        project_file_ids[asset_record.id] = asset_record.asset_name
+        project_file_ids[asset_record.asset_id] = asset_record.asset_name
 
     else:
         project_files = await asset_model.get_all_project_assets(
-            asset_project_id=project.id,
+            asset_project_id=project.project_id,
             asset_type=AssetTypeEnum.ASSET_TYPE_FILE.value
         )
         project_file_ids = {
-            record.id : record.asset_name 
+            record.asset_id : record.asset_name 
             for record in project_files
         }
     
@@ -131,7 +131,7 @@ async def process_data(request: Request, project_id: str, process_request: Proce
 
     if do_reset == 1:
         deleted_count = await chunk_model.delete_chunks_by_project_id(
-            project_id=project.id
+            project_id=project.project_id
         )
         logger.info(f"Deleted {deleted_count} existing chunks for project {project_id} before processing new file.")
 
@@ -162,7 +162,7 @@ async def process_data(request: Request, project_id: str, process_request: Proce
                 chunk_text=chunk.page_content,
                 chunk_metadata=chunk.metadata,
                 chunk_order=i+1,
-                chunk_project_id=project.id,
+                chunk_project_id=project.project_id,
                 chunk_asset_id=asset_id
             )
             for i, chunk in enumerate(file_chunks)

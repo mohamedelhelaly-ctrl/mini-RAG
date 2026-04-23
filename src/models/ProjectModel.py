@@ -1,5 +1,5 @@
 from .BaseDataModel import BaseDataModel
-from .mongodb_schemas import Project
+from .db_schemas import Project
 from .enums.DatabaseEnums import DatabaseEnum
 
 class ProjectModel(BaseDataModel):
@@ -28,10 +28,10 @@ class ProjectModel(BaseDataModel):
     
     async def create_project(self, project: Project):
         result = await self.collection.insert_one(project.dict(by_alias=True, exclude_unset=True))  # insert_one takes a dict, we need to convert the Project object to a dict  
-        project.id = result.inserted_id
+        project.project_id = result.inserted_id
         return project
     
-    async def get_or_create_project(self, project_id: str):
+    async def get_or_create_project(self, project_id: int):
 
         record = await self.collection.find_one({
             "project_id": project_id
