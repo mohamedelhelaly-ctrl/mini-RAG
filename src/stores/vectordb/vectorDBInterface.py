@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union
-from models.db_schemas.data_chunk import RetrievedDocument
+from models.db_schemas.minirag.schemas.data_chunk import RetrievedDocument
 
 class vectorDBInterface(ABC):
    
