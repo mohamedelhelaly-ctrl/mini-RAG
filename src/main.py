@@ -50,7 +50,7 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     # app.mongodb_conn.close()
-    app.db_engine.dispose()
+    await app.db_engine.dispose()
     app.vectordb_client.disconnect()
 
  

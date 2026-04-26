@@ -38,7 +38,7 @@ class ProcessController(BaseController):
     
     # file_content is a list of Document objects (with page_content and metadata attributes) returned by the loader.load() method
     def process_file_content(self, file_content: list, file_id: str, 
-                             chunk_size: int = 100, overlap_size: int = 20):
+                             chunk_size: int = 500, overlap_size: int = 100):
         
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size, 
