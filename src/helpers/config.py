@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List
 
 class Settings(BaseSettings):
     APP_NAME: str
@@ -29,9 +30,12 @@ class Settings(BaseSettings):
     GENERATION_DEFAULT_TEMPERATURE: float = None
 
     GENERATION_BACKEND: str
+    GENERATION_BACKEND_LITERALS: List[str] = None
     EMBEDDING_BACKEND: str
+    EMBEDDING_BACKEND_LITERALS: List[str] = None
 
     VECTOR_DB_BACKEND: str
+    VECTOR_DB_BACKEND_LITERALS: List[str] = None
     VECTOR_DB_PATH: str
     VECTOR_DB_DISTANCE_METHOD: str = None
 
