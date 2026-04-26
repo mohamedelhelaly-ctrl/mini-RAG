@@ -1,5 +1,5 @@
 from ..vectorDBInterface import vectorDBInterface
-from ..vectorDBEnums import vectorDBEnums, DistanceMethodEnums
+from ..vectorDBEnums import vectorDBEnums, QDrantDistanceMethodEnums
 from qdrant_client import QdrantClient, models
 from typing import List
 from models.db_schemas.minirag.schemas.data_chunk import RetrievedDocument
@@ -12,9 +12,9 @@ class QdrantDBProvider(vectorDBInterface):
         self.db_path = db_path
         self.distance_method = None
 
-        if distance_method == DistanceMethodEnums.COSINE.value:
+        if distance_method == QDrantDistanceMethodEnums.COSINE.value:
             self.distance_method = models.Distance.COSINE
-        if distance_method == DistanceMethodEnums.DOT.value:
+        if distance_method == QDrantDistanceMethodEnums.DOT.value:
             self.distance_method = models.Distance.DOT
 
         self.logger = logging.getLogger(__name__)
