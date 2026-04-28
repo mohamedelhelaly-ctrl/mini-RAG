@@ -1,11 +1,12 @@
 from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
-from fastapi.responses import JSONResponse 
+from fastapi.responses import JSONResponse
 from helpers.config import get_settings, Settings
 from routes.schemas.nlp import IndexPushRequest, IndexSearchRequest
 from models.ProjectModel import ProjectModel
 from models.ChunkModel import ChunkModel
 from controllers import NLPController
 from models.enums.ResponseEnums import ResponseEnum
+from tqdm.auto import tqdm
 import logging
 
 logger = logging.getLogger('uvicorn.error')
@@ -47,6 +48,20 @@ async def index_project_data(project_id: int, request: Request, push_request: In
     inserted_records = 0 
     idx = 0
 
+    # Ensure collection exists or reset if do_reset is True
+    collection_name = nlp_controller.create_collection_name(project.project_id)
+    _ = await request.app.vectordb_client.create_collection(
+        collection_name=collection_name,
+        embedding_size = request.app.embedding_client.embedding_size,
+        do_reset= push_request.do_reset
+    )
+
+    # Setup Batching
+    total_chunks_count = await chunk_model.count_chunks_by_project(project_id=project.project_id)
+    logger.info(f"Total chunks to index for project {project_id}: {total_chunks_count}")
+
+    progress_bar = tqdm(total=total_chunks_count, desc=f"Indexing chunks for project {project_id}", position=0)
+
     while has_records:
         page_chunks = await chunk_model.get_chunks_by_project(
             project_id=project.project_id,
@@ -57,14 +72,13 @@ async def index_project_data(project_id: int, request: Request, push_request: In
             has_records = False
             break
 
-        chunks_ids = list(range(idx, idx + len(page_chunks)))
+        chunks_ids = [chunk.chunk_id for chunk in page_chunks]
         idx += len(page_chunks)
 
-        is_inserted = nlp_controller.index_into_vectordb(
+        is_inserted = await nlp_controller.index_into_vectordb(
         project=project,
         chunks=page_chunks,
-        chunks_ids=chunks_ids,
-        do_reset= push_request.do_reset
+        chunks_ids=chunks_ids
         )
 
         if not is_inserted:
@@ -75,6 +89,7 @@ async def index_project_data(project_id: int, request: Request, push_request: In
             )
         
         page_no += 1
+        progress_bar.update(len(page_chunks))
         inserted_records += len(page_chunks)
         
     return JSONResponse(
@@ -99,7 +114,7 @@ async def get_index_info(project_id: int, request: Request):
                                 request.app.embedding_client,
                                 request.app.template_parser)
     
-    collection_info = nlp_controller.get_vectordb_collection_info(project)
+    collection_info = await nlp_controller.get_vectordb_collection_info(project)
     # print(collection_info)
     return JSONResponse(
         status_code=status.HTTP_200_OK,
@@ -122,7 +137,7 @@ async def search_index(project_id: int, request: Request, search_request: IndexS
                                 request.app.embedding_client,
                                 request.app.template_parser)
     
-    results = nlp_controller.search_vectordb_collection(
+    results = await nlp_controller.search_vectordb_collection(
         project=project,
         text=search_request.text,
         limit=search_request.limit
@@ -155,7 +170,7 @@ async def answer_query(project_id: int , request: Request, search_request: Index
                                 request.app.embedding_client,
                                 request.app.template_parser)
     
-    response, final_prompt, chat_history = nlp_controller.answer_query(
+    response, final_prompt, chat_history = await nlp_controller.answer_query(
         project=project,
         query=search_request.text,
         limit=search_request.limit
