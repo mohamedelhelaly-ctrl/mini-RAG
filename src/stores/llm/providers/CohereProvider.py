@@ -2,6 +2,8 @@ from ..LLMinterface import LLMInterface
 from ..LLMEnums import LLMEnums, CohereEnums, EmbeddingDocumentTypeEnums
 import cohere
 import logging
+from typing import Union, List
+import time
 
 
 class CohereProvider(LLMInterface):
@@ -83,7 +85,7 @@ class CohereProvider(LLMInterface):
 
         return response.message.content[0].text
     
-    def embed_text(self, text: str, document_type: str = None):
+    def embed_text(self, text: Union[str, List[str]], document_type: str = None):
         if not self.client:
             self.logger.error("Cohere client is not initialized. Cannot embed text.")
             return None
@@ -92,6 +94,9 @@ class CohereProvider(LLMInterface):
             self.logger.error("Embedding model ID is not set. Cannot embed text.")
             return None
         
+        if isinstance(text, str):
+            text = [text]
+
         input_type = CohereEnums.DOCUMENT.value
         if document_type == EmbeddingDocumentTypeEnums.QUERY.value:
             input_type = CohereEnums.QUERY.value
@@ -99,15 +104,16 @@ class CohereProvider(LLMInterface):
         response = self.client.embed(
             model=self.embedding_model_id,
             input_type=input_type,
-            texts = [text],
+            texts = [self.process_text(t) for t in text],
             embedding_types=["float"]
         )
+        time.sleep(1)  # Add a short delay to avoid hitting rate limits when embedding multiple texts in quick succession
 
         if not response or not response.embeddings or not response.embeddings.float:
             self.logger.error("No valid embedding returned from Cohere API.")
             return None
         
-        return response.embeddings.float[0]
+        return response.embeddings.float
     
 
     def construct_prompt(self, prompt: str, role: str):
