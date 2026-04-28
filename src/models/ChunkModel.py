@@ -58,7 +58,7 @@ class ChunkModel(BaseDataModel):
     
 
     
-    async def get_chunks_by_project(self, project_id: ObjectId, page_no: int=1,
+    async def get_chunks_by_project(self, project_id: int, page_no: int=1,
                                     page_size: int=50) -> List[DataChunk]:
         async with self.db_client() as session:
             async with session.begin():
@@ -66,4 +66,13 @@ class ChunkModel(BaseDataModel):
                 result = await session.execute(query)
                 chunks = result.scalars().all()
         return chunks
-        
+    
+    async def count_chunks_by_project(self, project_id: int) -> int:
+        chunks_count = 0
+        async with self.db_client() as session:
+            async with session.begin():
+                query = select(func.count(DataChunk.chunk_id)).where(DataChunk.chunk_project_id == project_id)
+                result = await session.execute(query)
+                chunks_count = result.scalar()
+
+        return chunks_count 
