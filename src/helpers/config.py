@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     VECTOR_DB_BACKEND_LITERALS: List[str] = None
     VECTOR_DB_PATH: str
     VECTOR_DB_DISTANCE_METHOD: str = None
+    VECTOR_DB_PGVECTOR_INDEX_THRESHOLD: int = None
+
 
     DEFAULT_LANGUAGE: str = "en"
 
