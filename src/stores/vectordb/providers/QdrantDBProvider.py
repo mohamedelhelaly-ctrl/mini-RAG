@@ -1,5 +1,5 @@
 from ..vectorDBInterface import vectorDBInterface
-from ..vectorDBEnums import vectorDBEnums, QDrantDistanceMethodEnums
+from ..vectorDBEnums import vectorDBEnums, DistanceMethodEnums
 from qdrant_client import QdrantClient, models
 from typing import List
 from models.db_schemas.minirag.schemas.data_chunk import RetrievedDocument
@@ -7,49 +7,54 @@ import logging
 
 class QdrantDBProvider(vectorDBInterface):
     
-    def __init__(self, db_path: str, distance_method: str):
+    def __init__(self, db_client: str, default_vector_size: int = 768, 
+                 distance_method: str = None, index_threshold: int = 1000 ):
         self.client = None
-        self.db_path = db_path
+        self.db_client = db_client
         self.distance_method = None
+        self.default_vector_size = default_vector_size
+        self.index_threshold = index_threshold
 
-        if distance_method == QDrantDistanceMethodEnums.COSINE.value:
+        if distance_method == DistanceMethodEnums.COSINE.value:
             self.distance_method = models.Distance.COSINE
-        if distance_method == QDrantDistanceMethodEnums.DOT.value:
+        if distance_method == DistanceMethodEnums.DOT.value:
             self.distance_method = models.Distance.DOT
 
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("uvicorn")
 
-    def connect(self):
-        self.client = QdrantClient(path=self.db_path)
+    async def connect(self):
+        self.client = QdrantClient(path=self.db_client)
         self.logger.info(f"Connected to QdrantDB")
 
-    def disconnect(self):
+    async def disconnect(self):
         self.client = None
         self.logger.info(f"Disconnected from QdrantDB")
     
-    def is_collection_existed(self, collection_name: str) -> bool:
+    async def is_collection_existed(self, collection_name: str) -> bool:
         return self.client.collection_exists(collection_name)
     
-    def list_all_collections(self) -> List:
+    async def list_all_collections(self) -> List:
         return self.client.get_collections()
     
-    def get_collection_info(self, collection_name: str) -> dict:
+    async def get_collection_info(self, collection_name: str) -> dict:
         return self.client.get_collection(collection_name)
     
-    def delete_collection(self, collection_name: str):
+    async def delete_collection(self, collection_name: str):
         if self.is_collection_existed(collection_name):
+            self.logger.info(f"Deleting collection {collection_name}")
             self.client.delete_collection(collection_name)
             self.logger.info(f"Collection {collection_name} deleted successfully")
         else:
             self.logger.warning(f"Collection {collection_name} does not exist")
 
-    def create_collection(self, collection_name: str,
+    async def create_collection(self, collection_name: str,
                           embedding_size: int,
                           do_reset: bool = False):
         if do_reset:
             _ = self.delete_collection(collection_name)
 
         if not self.is_collection_existed(collection_name):
+            self.logger.info(f"Creating collection {collection_name} with embedding size {embedding_size}")
             _ = self.client.create_collection(
                 collection_name=collection_name,
                 vectors_config=models.VectorParams(size=embedding_size, distance=self.distance_method)
@@ -57,7 +62,7 @@ class QdrantDBProvider(vectorDBInterface):
             return True
         return False
     
-    def insert_one(self, collection_name: str,
+    async def insert_one(self, collection_name: str,
                    text: str,
                    vector: list,
                    metadata: dict = None,
@@ -86,7 +91,7 @@ class QdrantDBProvider(vectorDBInterface):
         
         return True
     
-    def instert_many(self, collection_name: str,
+    async def instert_many(self, collection_name: str,
                      texts: list,
                      vectors: list,
                      metadatas: list = None,
@@ -128,7 +133,7 @@ class QdrantDBProvider(vectorDBInterface):
 
         return True
     
-    def search_by_vector(self, collection_name: str,
+    async def search_by_vector(self, collection_name: str,
                          vector: list,
                          limit: int = 5):
         
