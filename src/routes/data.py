@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
 from fastapi.responses import JSONResponse 
 from httpcore import request
 from helpers.config import get_settings, Settings
-from controllers import DataController, ProjectController, ProcessController
+from controllers import DataController, ProjectController, ProcessController, NLPController
 import os
 import aiofiles
 from models import ResponseEnum, AssetTypeEnum
@@ -128,8 +128,19 @@ async def process_data(request: Request, project_id: int, process_request: Proce
     
 
     process_controller = ProcessController(project_id=project_id)
+    
+    nlp_controller = NLPController(
+        vectordb_client=request.app.vectordb_client,
+        generation_client=request.app.generation_client,
+        embedding_client=request.app.embedding_client,
+        template_parser=request.app.template_parser
+    )
 
     if do_reset == 1:
+        # reset vector database collection for the project
+        _ = await nlp_controller.reset_vectordb_collection(project=project)
+
+        # delete all chunks in db for the project
         deleted_count = await chunk_model.delete_chunks_by_project_id(
             project_id=project.project_id
         )
