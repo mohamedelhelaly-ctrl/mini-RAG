@@ -4,6 +4,14 @@ import os
 from langchain_community.document_loaders import TextLoader, PyMuPDFLoader
 from models import ProcessEnum
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from typing import List
+from dataclasses import dataclass
+
+# Create dataclass similar to langchain.schema.Document to hold the page_content and metadata for each document returned by the loader.load() method
+@dataclass
+class Document:
+    page_content: str
+    metadata: dict
 
 class ProcessController(BaseController):
     
@@ -57,6 +65,35 @@ class ProcessController(BaseController):
             file_content_texts, 
             metadatas=file_content_metadata
         )
+        # chunks = self.process_simple_splitter(
+        #     texts=file_content_texts,
+        #     metadata=file_content_metadata,
+        #     chunk_size=chunk_size
+        # )
         return chunks
-
     
+    def process_simple_splitter(self, texts: List[str], metadata: List[dict], chunk_size: int, splitter: str = "\n"):
+        full_text = " ".join(texts)
+
+        # Split the full text into chunks based on the specified splitter
+        lines = [line.strip() for line in full_text.split(splitter) if line.strip()]
+        
+        chunks = []
+        current_chunk = ""
+
+        for line in lines:
+            current_chunk += line + splitter
+            if len(current_chunk) >= chunk_size:
+                chunks.append(Document(
+                    page_content=current_chunk.strip(),
+                    metadata={}
+                ))
+                current_chunk = ""
+
+            if len(current_chunk) > 0:
+                chunks.append(Document(
+                    page_content=current_chunk.strip(),
+                    metadata={}
+                ))
+
+        return chunks
